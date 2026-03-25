@@ -1,0 +1,33 @@
+# Web framework
+fastapi==0.109.2
+uvicorn==0.27.0
+pydantic==2.5.3
+python-multipart==0.0.9
+
+# HTTP client (used by dependency agent's real PyPI queries + AI clients)
+requests==2.31.0
+
+# Configuration
+python-dotenv==1.0.1
+
+# Rate limiting
+slowapi==0.1.9
+
+# Database / persistence
+sqlalchemy==2.0.23
+aiosqlite==0.20.0
+
+# Authentication
+python-jose[cryptography]==3.3.0
+argon2-cffi==23.1.0
+
+# Structured logging
+structlog==24.1.0
+
+# Real SAST (security agent)
+bandit==1.7.8
+
+# Real test execution (test runner agent)
+pytest==8.0.2
+pytest-json-report==1.5.0
+psutil==5.9.8

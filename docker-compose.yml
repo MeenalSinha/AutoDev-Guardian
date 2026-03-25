@@ -1,0 +1,72 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend_data:/app/data
+    environment:
+      DEMO_MODE: ${DEMO_MODE:-true}
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      HF_API_KEY: ${HF_API_KEY:-}
+      GITLAB_MOCK: ${GITLAB_MOCK:-true}
+      GITLAB_URL: ${GITLAB_URL:-https://gitlab.com}
+      GITLAB_TOKEN: ${GITLAB_TOKEN:-}
+      GITLAB_PROJECT_ID: ${GITLAB_PROJECT_ID:-}
+      DATABASE_URL: sqlite:////app/data/autodev_guardian.db
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-CHANGE_ME_IN_PRODUCTION}
+      JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-480}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-AdminPass123!}
+      ALLOWED_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
+      LOG_FORMAT: ${LOG_FORMAT:-console}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8000/api
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/nginx-health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # Optional: sandbox for isolated code execution
+  # Build: docker build -t autodev-sandbox ./sandbox
+  # The backend uses the sandbox when SANDBOX_ENABLED=true
+  # sandbox:
+  #   build:
+  #     context: ./sandbox
+  #   network_mode: none          # no internet access
+  #   mem_limit: 256m
+  #   cpus: 0.5
+  #   read_only: true
+  #   tmpfs:
+  #     - /tmp:size=64m
+
+volumes:
+  backend_data:
+
+networks:
+  default:
+    name: autodev-net
